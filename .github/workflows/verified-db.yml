@@ -1,0 +1,29 @@
+name: Update verified-database.json
+
+on:
+  repository_dispatch:
+    types: [update-verified-database-json]
+
+jobs:
+  update-json:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Fetch cast JSON from Web App
+        run: |
+          # -L follows HTTP redirects so we get the real JSON
+          curl -sSL "${{ github.event.client_payload.data_url }}" \
+            -o verified-database.json
+
+      - name: Commit and push changes
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add verified-database.json
+          git commit -m "chore: update verified-database.json via GitHub Action" || echo "No changes"
+          git push
